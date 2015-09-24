@@ -28,14 +28,14 @@ class PdfImages extends AbstractBinary
     }
 
     /**
-     * Extract images from a given pdf
+     *  Extract images from a given pdf
      *
      * @param $inputPdf
      * @param null $destinationRootFolder
+     * @param array $options
      * @return \FilesystemIterator
-     * @throws Exception\RuntimeException
      */
-    public function extractImages($inputPdf, $destinationRootFolder = null, $saveAsJpeg = true)
+    public function extractImages($inputPdf, $destinationRootFolder = null, array $options = array())
     {
         if (false === is_file($inputPdf)) {
             throw new RuntimeException(sprintf('Input file "%s" not found', $inputPdf));
@@ -57,7 +57,7 @@ class PdfImages extends AbstractBinary
 
         mkdir($destinationFolder);
 
-        $options = $this->buildOptions($saveAsJpeg, $inputPdf, $destinationFolder);
+        $options = $this->buildOptions($inputPdf, $destinationFolder, $options);
 
         try {
             $this->command($options);
@@ -69,16 +69,23 @@ class PdfImages extends AbstractBinary
     }
 
     /**
-     * @param bool $saveAsJpeg
      * @param $inputPdf
-     * @param null $destinationRootFolder
+     * @param $destinationFolder
+     * @param array $rawOptions
+     * @return array
      */
-    private function buildOptions($saveAsJpeg, $inputPdf, $destinationFolder)
+    private function buildOptions($inputPdf, $destinationFolder, array $rawOptions = array())
     {
         $options = array();
 
-        if ($saveAsJpeg) {
-            $options[] = '-j';
+        if (!empty($rawOptions)) {
+            foreach ($rawOptions as $option) {
+                if(substr($option, 0, 1) !== '-') {
+                    throw new ExecutionFailureException('Options must start with "-".
+                                ' . $option . ' - invalid option.');
+                }
+                $options[] = $option;
+            }
         }
 
         $options[] = $inputPdf;
