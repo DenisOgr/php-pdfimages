@@ -53,9 +53,13 @@ class PdfImages extends AbstractBinary
             throw new RuntimeException('Destination folder "%s" is not writable', $destinationRootFolder);
         }
 
-        $destinationFolder = $destinationRootFolder . '/' . uniqid('pdfimages').'/';
+        if(isset($options['createSubDir'])) {
+            $destinationFolder = $destinationRootFolder . '/' . uniqid('pdfimages').'/';
+            mkdir($destinationFolder);
+        } else {
+            $destinationFolder = $destinationRootFolder;
+        }
 
-        mkdir($destinationFolder);
 
         $options = $this->buildOptions($inputPdf, $destinationFolder, $options);
 
@@ -81,8 +85,7 @@ class PdfImages extends AbstractBinary
         if (!empty($rawOptions)) {
             foreach ($rawOptions as $option) {
                 if(substr($option, 0, 1) !== '-') {
-                    throw new ExecutionFailureException('Options must start with "-".
-                                ' . $option . ' - invalid option.');
+                    continue;
                 }
                 $options[] = $option;
             }
